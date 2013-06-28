@@ -204,8 +204,8 @@ Resources:
       contentCaching: ENABLED
       errorPage: You were a bad person, causing errors and such.
       accessList:
-      - address: "173.194.77.103"
-        type: DENY
+      - address: "0.0.0.0/0"
+        type: ALLOW
 
   MySqlCloudDatabaseServer:
     Type: "Rackspace::Cloud::DBInstance"
