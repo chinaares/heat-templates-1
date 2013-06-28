@@ -23,7 +23,7 @@ Parameters:
   ServerName:
     Description: Instance name
     Type: String
-    Default: Wordpress Webserver
+    Default: Wordpress Webserver Andrew2
 
   PublicKey:
     Description: Public SSH key that will be added to root user
@@ -104,23 +104,22 @@ Resources:
       PublicKey:
         Ref: PublicKey
       UserData: { "Fn::Base64" : { "Fn::Join" : ["", [
-                    "#!/bin/bash -v\n",
-                    "/usr/bin/cfn-init\n",
-                    "# Setup MySQL root password and create a user\n",
-                    "mysqladmin -u root password '", { "Ref" : "DBRootPassword" }, "'\n",
-                    "cat << EOF | mysql -u root --password='", { "Ref" : "DBRootPassword" }, "'\n",
-                    "CREATE DATABASE ", { "Ref" : "DBName" }, ";\n",
-                    "GRANT ALL PRIVILEGES ON ", { "Ref" : "DBName" }, ".* TO \"", { "Ref" : "DBUsername" }, "\"@\"localhost\"\n",
-                    "IDENTIFIED BY \"", { "Ref" : "DBPassword" }, "\";\n",
-                    "FLUSH PRIVILEGES;\n",
-                    "EXIT\n",
-                    "EOF\n",
-                    "sed -i \"/Deny from All/d\" /etc/httpd/conf.d/wordpress.conf\n",
-                    "sed -i \"s/Require local/Require all granted/\" /etc/httpd/conf.d/wordpress.conf\n",
-                    "sed --in-place --e s/database_name_here/", { "Ref" : "DBName" }, "/ --e s/username_here/", { "Ref" : "DBUsername" }, "/ --e s/password_here/", { "Ref" : "DBPassword" }, "/ /usr/share/wordpress/wp-config.php\n",
-                    "systemctl restart httpd.service\n",
-                    "iptables -I INPUT -p tcp --dport 80 -j ACCEPT\n",
-                    "iptables-save > /etc/sysconfig/iptables\n"
+                  "#!/bin/bash -v\n",
+                  "/usr/bin/cfn-init\n",
+                  "sed -i \"/Deny from All/d\" /etc/httpd/conf.d/wordpress.conf\n",
+                  "sed -i \"s/Require local/Require all granted/\" /etc/httpd/conf.d/wordpress.conf\n",
+                  "sed --in-place --e s/localhost/",
+                  { "Fn::GetAtt": [ "MySqlCloudDatabaseServer", "hostname" ] },
+                  "/ --e s/database_name_here/",
+                  { "Ref" : "DBName" },
+                  "/ --e s/username_here/",
+                  { "Ref" : "DBUsername" },
+                  "/ --e s/password_here/",
+                  { "Ref" : "DBPassword" },
+                  "/ /usr/share/wordpress/wp-config.php\n",
+                  "systemctl restart httpd.service\n",
+                  "iptables -I INPUT -p tcp --dport 80 -j ACCEPT\n",
+                  "iptables-save > /etc/sysconfig/iptables\n"
               ]]}}
 
   WebNode2: 
@@ -162,13 +161,15 @@ Resources:
                   "/ --e s/password_here/",
                   { "Ref" : "DBPassword" },
                   "/ /usr/share/wordpress/wp-config.php\n",
-                  "systemctl restart httpd.service\n"
+                  "systemctl restart httpd.service\n",
+                  "iptables -I INPUT -p tcp --dport 80 -j ACCEPT\n",
+                  "iptables-save > /etc/sysconfig/iptables\n"
         ]]}}
 
   LoadBalancer:
     Type: "Rackspace::Cloud::LoadBalancer"
     Properties:
-name: "Wordpress Loadbalancer"
+      name: "Wordpress LoadBalancer"
       nodes:
       - ref: { "Ref":  "WebNode1"}
         port: 80
