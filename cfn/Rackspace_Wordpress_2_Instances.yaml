@@ -23,7 +23,7 @@ Parameters:
   ServerName:
     Description: Instance name
     Type: String
-    Default: Wordpress Webserver Andrew2
+    Default: Wordpress Webserver
 
   PublicKey:
     Description: Public SSH key that will be added to root user
