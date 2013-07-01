@@ -265,12 +265,12 @@ Resources:
         port: 80
         condition: ENABLED
       - ref: { Ref: "WebNode2" }  # { "Fn::GetAtt": [ "WebNode2", "PrivateIp" ] }
-      - ref: { Ref: "WebNode3" }  # { "Fn::GetAtt": [ "WebNode2", "PrivateIp" ] }
         port: 80
         condition: ENABLED
-      - ref: { Ref: "WebNode4" }  # { "Fn::GetAtt": [ "WebNode2", "PrivateIp" ] }
+      - ref: { Ref: "WebNode3" }  # { "Fn::GetAtt": [ "WebNode3", "PrivateIp" ] }
         port: 80
         condition: ENABLED
+      - ref: { Ref: "WebNode4" }  # { "Fn::GetAtt": [ "WebNode4", "PrivateIp" ] }
         port: 80
         condition: ENABLED
       protocol: HTTP
