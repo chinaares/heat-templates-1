@@ -28,7 +28,7 @@ Parameters:
   PublicKey:
     Description: Public SSH key that will be added to root user
     Type: String
-    Default: "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAxS2c4dVUgt6X+l+Ks1qWhWBODUYW3ag1oUyIw5M4WGQlyRJCkxE26yG+schzcEBAIeDTgmycGdpEemKG9QppQmNdp20ykh5ncMzZbHE9f5+hQSotSqFCcjEUlzp4m//06M8wqVNWfJ2zs3xAelfv2iEsQg/t31aVHLF2HbPZLvmxVMj2xtrIUBXogAy9l9HjGGcYRN9eQ5gBBXPwmvP1FRFZZKx/BL+Ggk9W2G21XN53gpS6HRe6MrgD06nQMe2x5Af0+at+aSxh0bDpuNw3BkShC5OLn7K26GUjJjtStGOzMO3KkzsUUaD0qzO3+g16dSIJfxslnZlhvUjprtHKcQ== jason@carbon"
+    Default: ""
 
   DBName:
     Default: wordpress
@@ -41,7 +41,7 @@ Parameters:
 
   DBUsername:
     Default: admin
-    NoEcho: True
+    NoEcho: "true"
     Description: The WordPress database admin account username
     Type: String
     MinLength: 1
@@ -51,7 +51,7 @@ Parameters:
 
   DBPassword:
     Default: admin
-    NoEcho: true
+    NoEcho: "true"
     Description: The WordPress database admin account password
     Type: String
     MinLength: 1
@@ -169,12 +169,15 @@ Resources:
   LoadBalancer:
     Type: "Rackspace::Cloud::LoadBalancer"
     Properties:
-      name: "Wordpress LoadBalancer"
+      name:
+        "Fn::Replace":
+        - { "%SERVER_NAME%": { "Ref": "ServerName" } }
+        - "LB-%SERVER_NAME%"
       nodes:
-      - ref: { "Ref":  "WebNode1"}
+      - ref: { Ref: "WebNode1" } # { "Fn::GetAtt": [ "WebNode1", "PrivateIp" ] }
         port: 80
         condition: ENABLED
-      - ref: { "Ref":  "WebNode2"}
+      - ref: { Ref: "WebNode2" }  # { "Fn::GetAtt": [ "WebNode2", "PrivateIp" ] }
         port: 80
         condition: ENABLED
       protocol: HTTP
@@ -204,8 +207,8 @@ Resources:
       contentCaching: ENABLED
       errorPage: You were a bad person, causing errors and such.
       accessList:
-      - address: "0.0.0.0/0"
-        type: ALLOW
+      - address: "173.194.77.103"
+        type: DENY
 
   MySqlCloudDatabaseServer:
     Type: "Rackspace::Cloud::DBInstance"
