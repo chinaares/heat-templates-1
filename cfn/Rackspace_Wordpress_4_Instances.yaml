@@ -325,4 +325,3 @@ Outputs:
   WebsiteURL:
     Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "LoadBalancer", "PublicIp" ]}, "/wordpress"]] }
     Description: URL for Wordpress wiki
-
