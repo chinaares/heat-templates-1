@@ -65,35 +65,35 @@ Parameters:
     Type: String
     Default: 1GB Instance
 
-  VolumeSize: 
+  VolumeSize:
     Description : "The database volume size (in GB)"
     Type: Number
     MinValue: 1
     MaxValue: 1024
     Default: 30
 
-  InstanceName: 
+  InstanceName:
     Description: The database instance name
     Type: String
     Default: WP_Cloud_DB
 
 Resources:
 
-  WebNode1: 
+  WebNode1:
     Type: "Rackspace::Cloud::Server"
-    Metadata : 
-      "AWS::CloudFormation::Init": 
-        config: 
-          packages: 
-            yum: 
+    Metadata :
+      "AWS::CloudFormation::Init":
+        config:
+          packages:
+            yum:
               mysql: []
               httpd: []
               wordpress: []
-          services: 
-            systemd: 
+          services:
+            systemd:
               httpd:
                 enabled: True
-                ensureRunning: true 
+                ensureRunning: true
     Properties:
       Flavor:
         Ref: WebNodeFlavor
@@ -123,21 +123,21 @@ Resources:
                   "iptables-save > /etc/sysconfig/iptables\n"
               ]]}}
 
-  WebNode2: 
+  WebNode2:
     Type: "Rackspace::Cloud::Server"
-    Metadata : 
-      "AWS::CloudFormation::Init": 
-        config: 
-          packages: 
-            yum: 
+    Metadata :
+      "AWS::CloudFormation::Init":
+        config:
+          packages:
+            yum:
               mysql: []
               httpd: []
               wordpress: []
-          services: 
-            systemd: 
+          services:
+            systemd:
               httpd:
                 enabled: True
-                ensureRunning: true 
+                ensureRunning: true
     Properties:
       Flavor:
         Ref: WebNodeFlavor
@@ -233,4 +233,3 @@ Outputs:
   WebsiteURL:
     Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "LoadBalancer", "PublicIp" ]}, "/wordpress"]] }
     Description: URL for Wordpress wiki
-

@@ -66,21 +66,21 @@ Parameters:
     Type: String
     Default: 1GB Instance
 
-  VolumeSize: 
+  VolumeSize:
     Description : "The database volume size (in GB)"
     Type: Number
     MinValue: 1
     MaxValue: 1024
     Default: 30
 
-  InstanceName: 
+  InstanceName:
     Description: The database instance name
     Type: String
     Default: WP_Cloud_DB
 
 Resources:
 
-  wp1: 
+  wp1:
     Type: "https://raw.github.com/openstack/heat-templates/master/rackspace/Wordpress_Resource.yaml"
     Properties:
       Flavor:
@@ -97,7 +97,7 @@ Resources:
       DBPassword:
         Ref: DBPassword
 
-  wp2: 
+  wp2:
     Type: "https://raw.github.com/openstack/heat-templates/master/rackspace/Wordpress_Resource.yaml"
     Properties:
       Flavor:
@@ -180,4 +180,3 @@ Outputs:
   WebsiteURL:
     Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "lb", "PublicIp" ]}, "/wordpress"]] }
     Description: URL for Wordpress wiki
-

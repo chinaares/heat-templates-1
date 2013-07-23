@@ -24,7 +24,7 @@ Parameters:
     Description: Instance name
     Type: String
     Default: Wordpress Webserver
- 
+
   DBHost:
     Description: The database hostname
     Type: String
@@ -61,21 +61,21 @@ Parameters:
 
 Resources:
 
-  Wordpress: 
+  Wordpress:
     Type: "Rackspace::Cloud::Server"
-    Metadata : 
-      "AWS::CloudFormation::Init": 
-        config: 
-          packages: 
-            yum: 
+    Metadata :
+      "AWS::CloudFormation::Init":
+        config:
+          packages:
+            yum:
               mysql: []
               httpd: []
               wordpress: []
-          services: 
-            systemd: 
+          services:
+            systemd:
               httpd:
                 enabled: True
-                ensureRunning: true 
+                ensureRunning: true
     Properties:
       Flavor:
         Ref: Flavor
@@ -101,7 +101,7 @@ Resources:
               ]]}}
 
 Outputs:
-  
+
   PublicIp:
     Value: { "Fn::GetAtt" : [ "Wordpress", "PublicIp" ] }
     Description: The public ip address of the server
@@ -113,4 +113,3 @@ Outputs:
   WebsiteURL:
     Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "Wordpress", "PublicIp" ]}, "/wordpress"]] }
     Description: URL for Wordpress wiki
-
