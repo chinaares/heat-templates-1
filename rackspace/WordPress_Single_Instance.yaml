@@ -87,23 +87,23 @@ Resources:
               httpd: {enabled: 'true', ensureRunning: 'true'}
               mysqld: {enabled: 'true', ensureRunning: 'true'}
     Properties:
-      Flavor: {Ref: Flavor}
-      ImageName: {Ref: ImageName}
-      PublicKey: {Ref: PublicKey}
-      ServerName: {Ref: ServerName}
-      UserData: {Fn::Base64: {Fn::Join: ["", [
+      Flavor: { "Ref" : Flavor}
+      ImageName: { "Ref" : ImageName}
+      PublicKey: { "Ref" : PublicKey}
+      ServerName: { "Ref" : ServerName}
+      UserData: { "Fn::Base64" : { "Fn::Join" : ["", [
                   "#!/bin/bash -v\n",
                   "/usr/bin/cfn-init\n",
                   "sed -i \"/Deny from All/d\" /etc/httpd/conf.d/wordpress.conf\n",
                   "sed -i \"s/Require local/Require all granted/\" /etc/httpd/conf.d/wordpress.conf\n",
                   "sed --in-place --e s/localhost/",
-                  {Fn::GetAtt: [ "MySqlCloudDatabaseServer", "hostname" ] },
+                  { "Fn::GetAtt" : [ "MySqlCloudDatabaseServer", "hostname" ] },
                   "/ --e s/database_name_here/",
-                  {Ref: "DBName" },
+                  { "Ref" : "DBName" },
                   "/ --e s/username_here/",
-                  {Ref: "DBUsername" },
+                  { "Ref" : "DBUsername" },
                   "/ --e s/password_here/",
-                  {Ref: "DBPassword" },
+                  { "Ref" : "DBPassword" },
                   "/ /usr/share/wordpress/wp-config.php\n",
                   "systemctl restart httpd.service\n",
                   "iptables -I INPUT -p tcp --dport 80 -j ACCEPT\n",
@@ -113,5 +113,5 @@ Resources:
 Outputs:
 
   WebsiteURL:
-    Value: {Fn::Join: ["", ["http://", { "Fn::GetAtt" : [ "LoadBalancer", "PublicIp" ]}, "/wordpress"]] }
+    Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "LoadBalancer", "PublicIp" ]}, "/wordpress"]] }
     Description: URL for Wordpress wiki
