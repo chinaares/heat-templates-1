@@ -1,9 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: |
-  HEAT template for deploying a multi-node wordpress deployment on Rackspace Cloud
-  using Cloud Servers, Cloud Load Balancers and Cloud Databases. This version uses
-  a user-defined template resource to specify the implementation of the web-heads
+  HEAT template for deploying a multi-node wordpress deployment on
+  Rackspace Cloud using Cloud Servers, Cloud Load Balancers and Cloud
+  Databases. This version uses a user-defined template resource to
+  specify the implementation of the web-heads
 
 Parameters:
 
@@ -80,7 +81,7 @@ Parameters:
 Resources:
 
   wp1: 
-    Type: "https://raw.github.com/rs-randallburt/heat-templates/rs-dsl/rackspace/wp-resource.template"
+    Type: "https://raw.github.com/openstack/heat-templates/master/rackspace/Wordpress_Resource.yaml"
     Properties:
       Flavor:
         Ref: WebNodeFlavor
@@ -97,7 +98,7 @@ Resources:
         Ref: DBPassword
 
   wp2: 
-    Type: "https://raw.github.com/rs-randallburt/heat-templates/rs-dsl/rackspace/wp-resource.template"
+    Type: "https://raw.github.com/openstack/heat-templates/master/rackspace/Wordpress_Resource.yaml"
     Properties:
       Flavor:
         Ref: WebNodeFlavor
