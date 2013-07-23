@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: |
+  AWS CloudFormation Sample Template WordPress_Single_Instance:
+  WordPress is web software you can use to create a beautiful website
+  or blog. This template installs a single-instance WordPress
+  deployment using a local MySQL database to store the data.
+
+Parameters:
+
+  DBName:
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin
+    with a letter and contain only alphanumeric characters.
+    Default: wordpress
+    Description: The WordPress database name
+    MaxLength: 64
+    MinLength: 1
+    Type: String
+
+  DBPassword:
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Default: admin
+    Description: The WordPress database admin account password
+    MaxLength: 41
+    MinLength: 1
+    NoEcho: 'true'
+    Type: String
+
+  DBRootPassword:
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Default: admin
+    Description: Root password for MySQL
+    MaxLength: 41
+    MinLength: 1
+    NoEcho: 'true'
+    Type: String
+
+  DBUsername:
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only
+    alphanumeric characters.
+    Default: admin
+    Description: The WordPress database admin account username
+    MaxLength: 16
+    MinLength: 1
+    NoEcho: 'true'
+    Type: String
+
+  Flavor:
+    AllowedValues: ['1', '2', '3', '4', '5', '6', '7', '8']
+    ConstraintDescription: must be a valid Rackspace Cloud Server flavor.
+    Default: '2'
+    Description: Rackspace Cloud Server flavor
+    Type: String
+
+  ImageName:
+    Default: Ubuntu 12.04 LTS (Precise Pangolin)
+    Description: Image name
+    Type: String
+
+  PublicKey:
+    Description: Public SSH key that will be added to root user
+    Type: String
+    Default: ""
+
+  ServerName:
+    Default: My server
+    Description: Instance name
+    Type: String
+
+Resources:
+
+  WikiDatabase:
+    Type: Rackspace::Cloud::Server
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              httpd: []
+              mysql: []
+              mysql-server: []
+              wordpress: []
+          services:
+            systemd:
+              httpd: {enabled: 'true', ensureRunning: 'true'}
+              mysqld: {enabled: 'true', ensureRunning: 'true'}
+    Properties:
+      Flavor: {Ref: Flavor}
+      ImageName: {Ref: ImageName}
+      PublicKey: {Ref: PublicKey}
+      ServerName: {Ref: ServerName}
+      UserData: {Fn::Base64: {Fn::Join: ["", [
+                  "#!/bin/bash -v\n",
+                  "/usr/bin/cfn-init\n",
+                  "sed -i \"/Deny from All/d\" /etc/httpd/conf.d/wordpress.conf\n",
+                  "sed -i \"s/Require local/Require all granted/\" /etc/httpd/conf.d/wordpress.conf\n",
+                  "sed --in-place --e s/localhost/",
+                  {Fn::GetAtt: [ "MySqlCloudDatabaseServer", "hostname" ] },
+                  "/ --e s/database_name_here/",
+                  {Ref: "DBName" },
+                  "/ --e s/username_here/",
+                  {Ref: "DBUsername" },
+                  "/ --e s/password_here/",
+                  {Ref: "DBPassword" },
+                  "/ /usr/share/wordpress/wp-config.php\n",
+                  "systemctl restart httpd.service\n",
+                  "iptables -I INPUT -p tcp --dport 80 -j ACCEPT\n",
+                  "iptables-save > /etc/sysconfig/iptables\n"
+              ]]}}
+
+Outputs:
+
+  WebsiteURL:
+    Value: {Fn::Join: ["", ["http://", { "Fn::GetAtt" : [ "LoadBalancer", "PublicIp" ]}, "/wordpress"]] }
+    Description: URL for Wordpress wiki

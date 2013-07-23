@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: |
+  HEAT template for deploying a multi-node wordpress deployment on Rackspace Cloud
+  using Cloud Servers, Cloud Load Balancers and Cloud Databases. This version uses
+  a user-defined template resource to specify the implementation of the web-heads
+
+Parameters:
+
+  WebNodeFlavor:
+    Description: Rackspace Cloud Server flavor
+    Type: String
+    Default: "2"
+    AllowedValues:
+    - "2"
+    - "3"
+    - "4"
+    - "5"
+    - "6"
+    - "7"
+    - "8"
+    ConstraintDescription: must be a valid Rackspace Cloud Server flavor.
+
+  ServerName:
+    Description: Instance name
+    Type: String
+    Default: Wordpress Webserver
+
+  PublicKey:
+    Description: Public SSH key that will be added to root user
+    Type: String
+    Default: ""
+
+  DBName:
+    Default: wordpress
+    Description: The WordPress database name
+    Type: String
+    MinLength: 1
+    MaxLength: 64
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+  DBUsername:
+    Default: admin
+    NoEcho: "true"
+    Description: The WordPress database admin account username
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+
+  DBPassword:
+    Default: admin
+    NoEcho: "true"
+    Description: The WordPress database admin account password
+    Type: String
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern : "[a-zA-Z0-9]*"
+    ConstraintDescription : must contain only alphanumeric characters.
+
+  DBFlavor:
+    Description : Database instance size
+    Type: String
+    Default: 1GB Instance
+
+  VolumeSize: 
+    Description : "The database volume size (in GB)"
+    Type: Number
+    MinValue: 1
+    MaxValue: 1024
+    Default: 30
+
+  InstanceName: 
+    Description: The database instance name
+    Type: String
+    Default: WP_Cloud_DB
+
+Resources:
+
+  wp1: 
+    Type: "https://raw.github.com/rs-randallburt/heat-templates/rs-dsl/rackspace/wp-resource.template"
+    Properties:
+      Flavor:
+        Ref: WebNodeFlavor
+      ServerName:
+        "Fn::Replace":
+        - { "%SERVER_NAME%": { "Ref": "ServerName" } }
+        - "%SERVER_NAME%-1"
+      DBHost: { "Fn::GetAtt": [ "db", "hostname" ] }
+      DBName:
+        Ref: DBName
+      DBUsername:
+        Ref: DBUsername
+      DBPassword:
+        Ref: DBPassword
+
+  wp2: 
+    Type: "https://raw.github.com/rs-randallburt/heat-templates/rs-dsl/rackspace/wp-resource.template"
+    Properties:
+      Flavor:
+        Ref: WebNodeFlavor
+      ServerName:
+        "Fn::Replace":
+        - { "%SERVER_NAME%": { "Ref": "ServerName" } }
+        - "%SERVER_NAME%-2"
+      DBHost: { "Fn::GetAtt": [ "db", "hostname" ] }
+      DBName:
+        Ref: DBName
+      DBUsername:
+        Ref: DBUsername
+      DBPassword:
+        Ref: DBPassword
+
+  lb:
+    Type: "Rackspace::Cloud::LoadBalancer"
+    Properties:
+      name:
+        "Fn::Replace":
+        - { "%SERVER_NAME%": { "Ref": "ServerName" } }
+        - "LB-%SERVER_NAME%"
+      nodes:
+      - address: { "Fn::GetAtt": [ "wp1", "PrivateIp" ] }
+        port: 80
+        condition: ENABLED
+      - address: { "Fn::GetAtt": [ "wp2", "PrivateIp" ] }
+        port: 80
+        condition: ENABLED
+      protocol: HTTP
+      halfClosed: False
+      algorithm: LEAST_CONNECTIONS
+      connectionLogging: True
+      connectionThrottle:
+        maxConnections: 50
+        minConnections: 50
+        maxConnectionRate: 50
+        rateInterval: 50
+      port: 80
+      timeout: 120
+      sessionPersistence: HTTP_COOKIE
+      virtualIps:
+      - type: PUBLIC
+        ipVersion: IPV4
+      healthMonitor:
+        type: HTTP
+        delay: 10
+        timeout: 10
+        attemptsBeforeDeactivation: 3
+        path: "/"
+        statusRegex: "."
+        bodyRegex: "."
+        hostHeader: "example.com"
+      contentCaching: ENABLED
+      errorPage: You were a bad person, causing errors and such.
+      accessList:
+      - address: "173.194.77.103"
+        type: DENY
+
+  db:
+    Type: "Rackspace::Cloud::DBInstance"
+    Properties:
+      InstanceName:
+        Ref: InstanceName
+      FlavorRef:
+        Ref: DBFlavor
+      VolumeSize:
+        Ref: VolumeSize
+      Users:
+      - Name: { "Ref": "DBUsername" }
+        Password: { "Ref": "DBPassword" }
+        Databases:
+        - { "Ref": "DBName" }
+      Databases:
+      - Name: { "Ref": "DBName" }
+
+Outputs:
+
+  WebsiteURL:
+    Value: { "Fn::Join" : ["", ["http://", { "Fn::GetAtt" : [ "lb", "PublicIp" ]}, "/wordpress"]] }
+    Description: URL for Wordpress wiki
+
